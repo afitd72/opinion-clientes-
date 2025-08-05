@@ -19,13 +19,13 @@ st.set_page_config(page_title="Analisis reseñas de clientes", layout="centered"
 st.title("reseñas de clientes")
 
 # --- Cacheo de los pipelines pesados para reducir uso de memoria ---
-@st.cache_resource(show_spinner="Loading sentiment model...")
+@st.cache_resource(show_spinner="Cargando modelo...")
 def get_sentiment_pipeline():
     from transformers import pipeline
     # Modelo que sí detecta positivo, negativo y neutral
     return pipeline("sentiment-analysis", model="cardiffnlp/twitter-roberta-base-sentiment-latest")
 
-@st.cache_resource(show_spinner="Loading summarization model...")
+@st.cache_resource(show_spinner="Cargando modelo...")
 def get_summarizer_pipeline():
     from transformers import pipeline
     # Modelo de resumen pequeño y rápido
@@ -36,7 +36,7 @@ sentiment_pipe = None
 summarizer = None
 
 # --- Carga y procesado del archivo ---
-uploaded_file = st.file_uploader("Upload your CSV file with reviews", type=["csv"])
+uploaded_file = st.file_uploader("Carge el archivo CSV con las reseñas en ingles", type=["csv"])
 if uploaded_file:
     try:
         # --- LÓGICA DE LECTURA ROBUSTA (INCLUIDA) ---
@@ -60,7 +60,7 @@ if uploaded_file:
         df = pd.DataFrame({'opinion': reviews})
 
         if df.empty:
-            st.error("No reviews found in the file. Please check the file format.")
+            st.error("No se encuntra ninguna reseña")
             st.stop()
         
         # Limita el número de filas para no sobrecargar los modelos
@@ -70,7 +70,7 @@ if uploaded_file:
         st.error(f"An unexpected error occurred while reading the file: {e}")
         st.stop()
 
-    st.write("Preview of uploaded reviews:")
+    st.write("Preview de las Reseñas:")
     st.dataframe(df.head())
 
     # --- Limpieza de texto y Nube de Palabras ---
@@ -93,7 +93,7 @@ if uploaded_file:
         fig_wc.patch.set_facecolor('#222831')
         st.pyplot(fig_wc)
     else:
-        st.write("Not enough words to generate a word cloud.")
+        st.write("Se necesitan mas palabras para realizar la nube.")
 
     # --- Top 10 palabras más frecuentes ---
     st.subheader("Top 10 Palabras más repitidas")
@@ -105,8 +105,8 @@ if uploaded_file:
         fig_bar, ax_bar = plt.subplots(figsize=(9, 5), facecolor='#222831')
         bar_colors = ['#4FC3F7', '#29B6F6', '#039BE5', '#0288D1', '#0277BD', '#01579B', '#B3E5FC', '#81D4FA', '#0288D1', '#00B8D4']
         bars = ax_bar.barh(words_, counts, color=bar_colors[:len(words_)], edgecolor='black', height=0.7)
-        ax_bar.set_xlabel("Frequency", fontsize=14, weight='bold', color='white')
-        ax_bar.set_title("Top 10 Most Frequent Words", fontsize=18, weight='bold', pad=15, color='white')
+        ax_bar.set_xlabel("Frecuencia", fontsize=14, weight='bold', color='white')
+        ax_bar.set_title("Top 10 Palabras más repitidas", fontsize=18, weight='bold', pad=15, color='white')
         ax_bar.invert_yaxis()
         ax_bar.set_facecolor('#222831')
         fig_bar.patch.set_facecolor('#222831')
@@ -120,7 +120,7 @@ if uploaded_file:
         plt.tight_layout()
         st.pyplot(fig_bar)
     else:
-        st.write("Not enough words to show frequency.")
+        st.write("No hay sufucientes palabras.")
 
 
     # --- Clasificación de Sentimiento ---
