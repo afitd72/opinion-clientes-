@@ -79,14 +79,14 @@ if uploaded_file:
     words = re.findall(r'\b\w+\b', text.lower())
     filtered_words = [w for w in words if w not in stop_words]
 
-    st.subheader("Word Cloud")
+    st.subheader("Gráfico de nube de palabras ")
     if filtered_words:
         fig_wc, ax_wc = plt.subplots(figsize=(8, 4), facecolor='#222831')
         wordcloud = WordCloud(
             width=800,
             height=400,
-            background_color='#222831',
-            colormap='Blues'
+            background_color="white",
+            colormap='Reds'
         ).generate(" ".join(filtered_words))
         ax_wc.imshow(wordcloud, interpolation='bilinear')
         ax_wc.axis('off')
@@ -96,7 +96,7 @@ if uploaded_file:
         st.write("Not enough words to generate a word cloud.")
 
     # --- Top 10 palabras más frecuentes ---
-    st.subheader("Top 10 Most Frequent Words")
+    st.subheader("Top 10 Palabras más repitidas")
     if filtered_words:
         counter = Counter(filtered_words)
         common_words = counter.most_common(10)
@@ -124,8 +124,9 @@ if uploaded_file:
 
 
     # --- Clasificación de Sentimiento ---
-    st.subheader("Sentiment Classification")
+    st.subheader("Analisis de la Reseña")
     
+    # --- Modelo
     def safe_sentiment(text):
         global sentiment_pipe
         if sentiment_pipe is None:
@@ -142,12 +143,12 @@ if uploaded_file:
 
     sentiment_counts = df['sentiment'].value_counts()
     fig_sent, ax_sent = plt.subplots(figsize=(6, 4), facecolor='#222831')
-    bar_colors_map = {'positive': '#48C9B0', 'neutral': '#F4D03F', 'negative': '#E74C3C'}
+    bar_colors_map = {'positiva': '#48C9B0', 'neutral': '#F4D03F', 'negativa': '#E74C3C'}
     bar_colors = [bar_colors_map.get(s, '#888888') for s in sentiment_counts.index]
     
     bars = ax_sent.barh(sentiment_counts.index, sentiment_counts.values, color=bar_colors, edgecolor='black', linewidth=1.5)
-    ax_sent.set_xlabel("Number of Reviews", fontsize=12, color='white')
-    ax_sent.set_title("Sentiment Distribution", fontsize=14, weight='bold', color='white')
+    ax_sent.set_xlabel("Numero de reseñas", fontsize=12, color='white')
+    ax_sent.set_title("Analisis de la Reseña", fontsize=14, weight='bold', color='white')
     ax_sent.invert_yaxis()
     ax_sent.set_facecolor('#222831')
     fig_sent.patch.set_facecolor('#222831')
@@ -160,33 +161,18 @@ if uploaded_file:
     ax_sent.tick_params(axis='y', colors='white')
     plt.tight_layout()
     st.pyplot(fig_sent)
+    
+    # --- Longitud de textos 
 
-    # --- Resumen General de Opiniones ---
-    st.subheader("General Summary of Reviews")
-    text_to_summarize = " ".join(df['opinion'].astype(str))[:2000]
-    if summarizer is None:
-        summarizer = get_summarizer_pipeline()
-    try:
-        resumen = summarizer(text_to_summarize, max_length=100, min_length=30, do_sample=False)[0]['summary_text']
-        st.info(resumen)
-    except Exception as e:
-        st.warning(f"Could not generate summary. Error: {e}")
+    df['length'] = df['opinion'].astype(str).apply(len)
+    length_mean = df.groupby('sentiment')['length'].mean()
 
-    # --- Analizar una nueva opinión ---
-    st.subheader("Analyze a New Review")
-    new_comment = st.text_area("Write a new review here:", height=100)
-    if st.button("Analyze Review"):
-        if new_comment.strip():
-            sentiment = safe_sentiment(new_comment)
-            try:
-                resumen_nuevo = summarizer(new_comment, max_length=50, min_length=15, do_sample=False)[0]['summary_text'] \
-                    if len(new_comment.split()) > 20 else new_comment
-            except Exception:
-                resumen_nuevo = new_comment
-            st.write(f"**Sentiment:** {sentiment.capitalize()}")
-            st.write(f"**Summary:** {resumen_nuevo}")
-        else:
-            st.warning("Please write a review to analyze.")
+    st.subheader(" Longitud promedio de las opiniones por sentimiento")
+    fig_len, ax_len = plt.subplots()
+    ax_len.bar(length_mean.index, length_mean.values, color=['#48C9B0', '#F4D03F', '#E74C3C'])
+    ax_len.set_ylabel("Longitud promedio de texto")
+    ax_len.set_title("Longitud de Opiniones por Sentimiento")
+    st.pyplot(fig_len)
 
 else:
     st.info("Upload a CSV file with a column named 'opinion' to begin.")
