@@ -71,7 +71,7 @@ if uploaded_file:
         st.stop()
 
     st.write("Preview de las Reseñas:")
-    st.dataframe(df.head())
+    st.dataframe(df)
 
     # --- Limpieza de texto y Nube de Palabras ---
     stop_words = set(stopwords.words('english'))
@@ -139,7 +139,7 @@ if uploaded_file:
             return "neutral"
 
     df['sentiment'] = df['opinion'].astype(str).apply(safe_sentiment)
-    st.dataframe(df[['opinion', 'sentiment']].head())
+    st.dataframe(df[['opinion', 'sentiment']])
 
     sentiment_counts = df['sentiment'].value_counts()
     fig_sent, ax_sent = plt.subplots(figsize=(6, 4), facecolor='#222831')
